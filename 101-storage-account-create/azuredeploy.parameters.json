@@ -4,6 +4,9 @@
   "parameters": {
     "storageAccountType": {
       "value": "Standard_LRS"
+    },
+      "storageName": {
+	    "value": ("rahulteststorage1lavda1", "prashant")
+		}
     }
   }
-}
