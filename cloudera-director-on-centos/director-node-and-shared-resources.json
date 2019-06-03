@@ -44,7 +44,6 @@
     "singleQuote": "'",
     "vmName": "[parameters('dnsNamePrefix')]",
     "nicName": "[concat(variables('vmName'), '-nic')]",
-    "publicIPAddressName": "[concat(variables('vmName'), '-publicIP')]",
     "storageAccountName": "[concat(parameters('storageAccount').prefix, 'dir')]",
     "storageAccountContainerName": "vhds",
     "dirSecurityGroupName": "[concat(parameters('dnsNamePrefix'), '-dir-sg')]",
@@ -154,23 +153,10 @@
     },
     {
       "apiVersion": "[parameters('version').resourceAPIVersion]",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('publicIPAddressName')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[variables('vmName')]"
-        }
-      }
-    },
-    {
-      "apiVersion": "[parameters('version').resourceAPIVersion]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicName'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
         "[concat('Microsoft.Network/networkSecurityGroups/', variables('dirSecurityGroupName'))]"
       ],
       "properties": {
@@ -183,9 +169,6 @@
               "subnet": {
                 "id": "[concat(parameters('vnetID'), '/subnets/', parameters('networkSpec').virtualNetworkSubnetName)]"
               },
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('publicIPAddressName')))]"
-              }
             }
           }
         ],
