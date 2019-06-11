@@ -53,46 +53,43 @@
   },
   "resources": [
     {
-      "apiVersion":  "2017-12-01", 
+      "apiVersion": "2017-12-01",
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('masterAsName')]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "Aligned"
-        },
-        "properties": { 
+      },
+      "properties": {
         "platformFaultDomainCount": 2,
         "platformUpdateDomainCount": 5
-        }
-        
+      }
     },
     {
-      "apiVersion":  "2017-12-01", 
+      "apiVersion": "2017-12-01",
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('workerAsName')]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "Aligned"
-        },
-        "properties": { 
+      },
+      "properties": {
         "platformFaultDomainCount": 2,
         "platformUpdateDomainCount": 5
-        }
-        
+      }
     },
     {
-      "apiVersion": "2017-12-01", 
+      "apiVersion": "2017-12-01",
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('edgeAsName')]",
       "location": "[parameters('location')]",
       "sku": {
         "name": "Aligned"
-        },
-        "properties": { 
+      },
+      "properties": {
         "platformFaultDomainCount": 2,
         "platformUpdateDomainCount": 5
-        }
-        
+      }
     },
     {
       "apiVersion": "[parameters('version').resourceAPIVersion]",
@@ -168,7 +165,7 @@
               "privateIPAddress": "[parameters('networkSpec').directorServerIPAddress]",
               "subnet": {
                 "id": "[concat(parameters('vnetID'), '/subnets/', parameters('networkSpec').virtualNetworkSubnetName)]"
-              },
+              }
             }
           }
         ],
@@ -178,8 +175,8 @@
       }
     },
     {
-      "apiVersion":"2017-03-30",  
-     "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2017-03-30",
+      "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('vmName'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
@@ -215,7 +212,6 @@
               "name": "[concat(variables('vmName'),'_DataDisk0')]",
               "diskSizeGB": "128",
               "lun": 0,
-              
               "caching": "ReadWrite",
               "createOption": "Empty"
             }
@@ -227,6 +223,35 @@
               "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName')))]"
             }
           ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmName'), '/CustomScript')]",
+      "apiVersion": "2015-06-15",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[concat(parameters('scriptsUri'), '/scripts/initialize-director-server.sh')]",
+            "[concat(parameters('scriptsUri'), '/scripts/initialize-dns-server.sh')]",
+            "[concat(parameters('scriptsUri'), '/scripts/requirements.txt')]",
+            "[concat(parameters('scriptsUri'), '/scripts/prepare-mysql-disks.sh')]",
+            "[concat(parameters('scriptsUri'), '/scripts/initialize-mysql-server.sh')]",
+            "[concat(parameters('scriptsUri'), '/scripts/marketing.py')]",
+            "[concat(parameters('scriptsUri'), '/scripts/director_user_passwd.py')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('sh initialize-director-server.sh ', variables('singleQuote'), parameters('vmSpec').adminUsername, variables('singleQuote'), ' ', variables('singleQuote'), parameters('dnsNameSuffix'), variables('singleQuote'), ' ', variables('singleQuote'), parameters('networkSpec').directorServerIPAddress, variables('singleQuote'), ' ', variables('singleQuote'), parameters('vmSpec').dbUsername, variables('singleQuote'), ' ', variables('singleQuote'), parameters('vmSpec').dbPassword, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').company, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').emailAddress, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').businessPhone, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').firstName, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').lastName, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').jobRole, variables('singleQuote'), ' ', variables('singleQuote'), parameters('userInfo').jobFunction, variables('singleQuote'), ' ', variables('singleQuote'), parameters('clusterParameters').dirUsername, variables('singleQuote'), ' ', variables('singleQuote'), parameters('clusterParameters').dirPassword, variables('singleQuote'))]"
         }
       }
     }
